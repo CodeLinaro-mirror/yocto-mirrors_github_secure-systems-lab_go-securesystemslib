@@ -31,6 +31,12 @@ func NewED25519SignerVerifierFromSSLibKey(key *SSLibKey) (*ED25519SignerVerifier
 		return nil, fmt.Errorf("unable to create ED25519 signerverifier: %w", err)
 	}
 
+	// crypto/ed25519 panics rather than returning an error when it is handed a
+	// key of the wrong size, so the length has to be checked here.
+	if len(public) != ed25519.PublicKeySize {
+		return nil, fmt.Errorf("unable to create ED25519 signerverifier: %w", ErrInvalidKeyLength)
+	}
+
 	var private []byte
 	if len(key.KeyVal.Private) > 0 {
 		private, err = hex.DecodeString(key.KeyVal.Private)
@@ -46,6 +52,10 @@ func NewED25519SignerVerifierFromSSLibKey(key *SSLibKey) (*ED25519SignerVerifier
 		// expect, we append the public portion as well.
 		if len(private) == ed25519.PrivateKeySize/2 {
 			private = append(private, public...)
+		}
+
+		if len(private) != ed25519.PrivateKeySize {
+			return nil, fmt.Errorf("unable to create ED25519 signerverifier: %w", ErrInvalidKeyLength)
 		}
 	}
 

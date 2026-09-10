@@ -37,10 +37,15 @@ func NewECDSASignerVerifierFromSSLibKey(key *SSLibKey) (*ECDSASignerVerifier, er
 		return nil, fmt.Errorf("unable to create ECDSA signerverifier: %w", err)
 	}
 
+	publicKey, ok := publicParsedKey.(*ecdsa.PublicKey)
+	if !ok {
+		return nil, fmt.Errorf("unable to create ECDSA signerverifier: %w", ErrNotECDSAKey)
+	}
+
 	sv := &ECDSASignerVerifier{
 		keyID:     key.KeyID,
-		curveSize: publicParsedKey.(*ecdsa.PublicKey).Params().BitSize,
-		public:    publicParsedKey.(*ecdsa.PublicKey),
+		curveSize: publicKey.Params().BitSize,
+		public:    publicKey,
 		private:   nil,
 	}
 
@@ -50,7 +55,12 @@ func NewECDSASignerVerifierFromSSLibKey(key *SSLibKey) (*ECDSASignerVerifier, er
 			return nil, fmt.Errorf("unable to create ECDSA signerverifier: %w", err)
 		}
 
-		sv.private = privateParsedKey.(*ecdsa.PrivateKey)
+		privateKey, ok := privateParsedKey.(*ecdsa.PrivateKey)
+		if !ok {
+			return nil, fmt.Errorf("unable to create ECDSA signerverifier: %w", ErrNotECDSAKey)
+		}
+
+		sv.private = privateKey
 	}
 
 	return sv, nil

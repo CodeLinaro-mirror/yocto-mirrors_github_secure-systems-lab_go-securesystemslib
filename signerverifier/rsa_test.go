@@ -33,6 +33,25 @@ func TestNewRSAPSSSignerVerifierFromSSLibKey(t *testing.T) {
 	assert.Nil(t, sv.private)
 }
 
+func TestNewRSAPSSSignerVerifierFromSSLibKeyWithNonRSAKey(t *testing.T) {
+	// The mirror of the ECDSA case: an RSA keytype carrying an ECDSA PEM.
+	pemBytes, err := os.ReadFile(filepath.Join("test-data", "ecdsa-test-key-pem.pub"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	key := &SSLibKey{
+		KeyID:   "test",
+		KeyType: RSAKeyType,
+		Scheme:  RSAKeyScheme,
+		KeyVal:  KeyVal{Public: string(pemBytes)},
+	}
+
+	sv, err := NewRSAPSSSignerVerifierFromSSLibKey(key)
+	assert.Nil(t, sv)
+	assert.ErrorIs(t, err, ErrNotRSAKey)
+}
+
 func TestLoadRSAPSSKeyFromFile(t *testing.T) {
 	t.Run("RSA public key", func(t *testing.T) {
 		key, err := LoadRSAPSSKeyFromFile(filepath.Join("test-data", "rsa-test-key.pub"))

@@ -32,6 +32,35 @@ func TestNewED25519SignerVerifierFromSSLibKey(t *testing.T) {
 	assert.Nil(t, sv.private)
 }
 
+func TestNewED25519SignerVerifierFromSSLibKeyWithWrongLengthKey(t *testing.T) {
+	// crypto/ed25519 panics on a key of the wrong size, so a short public key
+	// used to be accepted here and then blow up inside Verify.
+	t.Run("public key too short", func(t *testing.T) {
+		key := &SSLibKey{
+			KeyID:   "test",
+			KeyType: ED25519KeyType,
+			Scheme:  ED25519KeyType,
+			KeyVal:  KeyVal{Public: "abcdef"},
+		}
+
+		sv, err := NewED25519SignerVerifierFromSSLibKey(key)
+		assert.Nil(t, sv)
+		assert.ErrorIs(t, err, ErrInvalidKeyLength)
+	})
+
+	t.Run("private key too short", func(t *testing.T) {
+		key, err := LoadED25519KeyFromFile(filepath.Join("test-data", "ed25519-test-key"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		key.KeyVal.Private = "abcdef"
+
+		sv, err := NewED25519SignerVerifierFromSSLibKey(key)
+		assert.Nil(t, sv)
+		assert.ErrorIs(t, err, ErrInvalidKeyLength)
+	})
+}
+
 func TestLoadED25519KeyFromFile(t *testing.T) {
 	t.Run("ED25519 public key", func(t *testing.T) {
 		key, err := LoadED25519KeyFromFile(filepath.Join("test-data", "ed25519-test-key.pub"))
