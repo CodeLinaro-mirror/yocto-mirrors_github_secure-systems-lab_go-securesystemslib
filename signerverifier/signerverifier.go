@@ -19,6 +19,9 @@ var (
 	ErrInvalidThreshold            = errors.New("threshold is either less than 1 or greater than number of provided public keys")
 	ErrInvalidKey                  = errors.New("key object has no value")
 	ErrInvalidPEM                  = errors.New("unable to parse PEM block")
+	ErrNotECDSAKey                 = errors.New("loaded key is not an ECDSA key")
+	ErrNotRSAKey                   = errors.New("loaded key is not an RSA key")
+	ErrInvalidKeyLength            = errors.New("key is not of the expected length")
 )
 
 const (

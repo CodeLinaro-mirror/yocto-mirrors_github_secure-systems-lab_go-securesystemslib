@@ -32,6 +32,26 @@ func TestNewECDSASignerVerifierFromSSLibKey(t *testing.T) {
 	assert.Nil(t, sv.private)
 }
 
+func TestNewECDSASignerVerifierFromSSLibKeyWithNonECDSAKey(t *testing.T) {
+	// An SSLibKey whose keytype says ECDSA but whose PEM holds an RSA key used
+	// to reach an unchecked type assertion and panic.
+	pemBytes, err := os.ReadFile(filepath.Join("test-data", "rsa-test-key.pub"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	key := &SSLibKey{
+		KeyID:   "test",
+		KeyType: ECDSAKeyType,
+		Scheme:  ECDSAKeyScheme,
+		KeyVal:  KeyVal{Public: string(pemBytes)},
+	}
+
+	sv, err := NewECDSASignerVerifierFromSSLibKey(key)
+	assert.Nil(t, sv)
+	assert.ErrorIs(t, err, ErrNotECDSAKey)
+}
+
 func TestLoadECDSAKeyFromFile(t *testing.T) {
 	t.Run("ecdsa public key", func(t *testing.T) {
 		key, err := LoadECDSAKeyFromFile(filepath.Join("test-data", "ecdsa-test-key.pub"))

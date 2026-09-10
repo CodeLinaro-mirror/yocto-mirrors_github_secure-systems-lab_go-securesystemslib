@@ -38,22 +38,32 @@ func NewRSAPSSSignerVerifierFromSSLibKey(key *SSLibKey) (*RSAPSSSignerVerifier, 
 		return nil, fmt.Errorf("unable to create RSA-PSS signerverifier: %w", err)
 	}
 
+	publicKey, ok := publicParsedKey.(*rsa.PublicKey)
+	if !ok {
+		return nil, fmt.Errorf("unable to create RSA-PSS signerverifier: %w", ErrNotRSAKey)
+	}
+
 	if len(key.KeyVal.Private) > 0 {
 		_, privateParsedKey, err := decodeAndParsePEM([]byte(key.KeyVal.Private))
 		if err != nil {
 			return nil, fmt.Errorf("unable to create RSA-PSS signerverifier: %w", err)
 		}
 
+		privateKey, ok := privateParsedKey.(*rsa.PrivateKey)
+		if !ok {
+			return nil, fmt.Errorf("unable to create RSA-PSS signerverifier: %w", ErrNotRSAKey)
+		}
+
 		return &RSAPSSSignerVerifier{
 			keyID:   key.KeyID,
-			public:  publicParsedKey.(*rsa.PublicKey),
-			private: privateParsedKey.(*rsa.PrivateKey),
+			public:  publicKey,
+			private: privateKey,
 		}, nil
 	}
 
 	return &RSAPSSSignerVerifier{
 		keyID:   key.KeyID,
-		public:  publicParsedKey.(*rsa.PublicKey),
+		public:  publicKey,
 		private: nil,
 	}, nil
 }
