@@ -263,10 +263,10 @@ func newEcdsaKey() *ecdsa.PrivateKey {
 	var private = ecdsa.PrivateKey{
 		PublicKey: ecdsa.PublicKey{
 			Curve: elliptic.P256(),
-			X:     &x,
-			Y:     &y,
+			X:     &x, //nolint:staticcheck
+			Y:     &y, //nolint:staticcheck
 		},
-		D: &d,
+		D: &d, //nolint:staticcheck
 	}
 
 	return &private
